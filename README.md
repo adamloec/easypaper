@@ -28,5 +28,8 @@ Similar to the install, the run script is bundled into a single command.
 
 ```
 cd easypaper/easypaper
+```
+
+```
 npm run dev
 ```

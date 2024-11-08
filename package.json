@@ -1,0 +1,9 @@
+{
+    "name": "easypaper",
+    "private": true,
+    "scripts": {
+      "install-all": "pip install -r requirements.txt && cd easypaper/client && npm install",
+      "build": "cd easypaper/client && npm run build",
+      "dev": "python easypaper/server/main.py"
+    }
+  }

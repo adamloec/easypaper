@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 
@@ -6,6 +7,16 @@ from services.papers import Papers
 router = APIRouter()
 papers = Papers()
 
+def prepare_search_query(query: str) -> str:
+    cleaned = re.sub(r'[^\w\s]', ' ', query)
+    cleaned = ' '.join(cleaned.split())
+    
+    if ' ' in cleaned:
+        terms = cleaned.split()
+        return f"ti:({' OR '.join(terms)}) OR abs:({' OR '.join(terms)})"
+    
+    return f"ti:{cleaned} OR abs:{cleaned}"
+
 @router.get("/search/")
 async def search(
     keyword: Optional[str] = Query(None, description="Keyword to search within papers"),
@@ -13,10 +24,35 @@ async def search(
     max_results: int = Query(100, description="Maximum number of results to return", ge=1, le=1000)
 ):
     try:
-        results = papers.fetch_papers(keyword=keyword, category=category, max_results=max_results)
+        if not keyword and not category:
+            raise HTTPException(status_code=400, detail="Please provide a keyword or category for search")
+
+        processed_keyword = prepare_search_query(keyword) if keyword else None
+        
+        results = papers.fetch_papers(
+            keyword=processed_keyword,
+            category=category,
+            max_results=max_results
+        )
 
         if not results:
-            raise HTTPException(status_code=404, detail="No Arxiv papers found.")
+            raise HTTPException(
+                status_code=404, 
+                detail="No papers found matching your search criteria. Try broadening your search."
+            )
+        
+        if keyword:
+            search_terms = set(keyword.lower().split())
+            sorted_results = sorted(
+                results,
+                key=lambda paper: (
+                    sum(term in paper.title.lower() for term in search_terms) * 2 +
+                    sum(term in paper.summary.lower() for term in search_terms)
+                ),
+                reverse=True
+            )
+        else:
+            sorted_results = results
         
         return [
             {
@@ -26,7 +62,10 @@ async def search(
                 "summary": paper.summary,
                 "pdf_url": paper.pdf_url
             }
-            for paper in results
+            for paper in sorted_results
         ]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error searching papers: {str(e)}"
+        )

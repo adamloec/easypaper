@@ -28,10 +28,12 @@ async def search(
             raise HTTPException(status_code=400, detail="Please provide a keyword or category for search")
 
         processed_keyword = prepare_search_query(keyword) if keyword else None
+
+        search_category = category if category and category.strip() else None
         
         results = papers.fetch_papers(
             keyword=processed_keyword,
-            category=category,
+            category=search_category,
             max_results=max_results
         )
 

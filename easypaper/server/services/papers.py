@@ -10,7 +10,7 @@ class Papers:
         elif category:
             query = f"cat:{category}"
         elif keyword:
-            query = f"cat:{category}"
+            query = keyword
         else:
             query = "cat:cs.AI"
         

@@ -17,8 +17,12 @@ const App = () => {
     try {
       const response = await searchPapers(searchParams);
       
-      if (response.data && Array.isArray(response.data)) {
-        navigate('/results', { state: { papers: response.data } });
+      if (response.data) {
+        if (response.data.length === 0) {
+          setError('No papers found matching your search criteria. Try broadening your search.');
+        } else {
+          navigate('/results', { state: { papers: response.data } });
+        }
       } else {
         setError('Invalid response format from server');
       }
@@ -27,10 +31,8 @@ const App = () => {
       
       if (err.code === 'ERR_NETWORK') {
         setError('Unable to connect to the server. Please verify the server is running on port 8000.');
-      } else if (err.response?.status === 404) {
-        setError(err.response.data?.detail || 'No papers found matching your search criteria.');
       } else if (err.response?.status === 500) {
-        setError(err.response.data?.detail || 'Server error occurred while searching papers.');
+        setError('An unexpected error occurred. Please try again.');
       } else {
         setError('An unexpected error occurred. Please try again later.');
       }

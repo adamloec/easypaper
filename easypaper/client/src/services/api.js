@@ -10,13 +10,26 @@ const api = axios.create({
 });
 
 export const searchPapers = async ({ search, category }) => {
-  const params = new URLSearchParams();
-  params.append('keyword', search);
-  if (category) {
-    params.append('category', category);
+  try {
+    const params = new URLSearchParams();
+
+    if (search?.trim()) {
+      params.append('keyword', search.trim());
+    }
+    
+    if (category && category !== '' && category.trim()) {
+      params.append('category', category.trim());
+    }
+    
+    const response = await api.get('/papers/search/', { params });
+    return response;
+  } catch (error) {
+
+    if (error.response?.status === 404) {
+      return { data: [] };
+    }
+    throw error;
   }
-  
-  return api.get('/papers/search/', { params });
 };
 
 export default api;

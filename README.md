@@ -12,7 +12,13 @@ I bundled the npm and python install into a single npm package.
 
 ```
 git clone https://github.com/adamloec/easypaper
+```
+
+```
 cd easypaper
+```
+
+```
 npm run install-all
 ```
 

@@ -10,7 +10,7 @@ papers = Papers()
 async def search(
     keyword: Optional[str] = Query(None, description="Keyword to search within papers"),
     category: Optional[str] = Query(None, description="Category code for arXiv search (e.g., cs.LG)"),
-    max_results: int = 10
+    max_results: int = Query(100, description="Maximum number of results to return", ge=1, le=1000)
 ):
     try:
         results = papers.fetch_papers(keyword=keyword, category=category, max_results=max_results)

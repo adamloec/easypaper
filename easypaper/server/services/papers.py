@@ -3,7 +3,7 @@ from typing import Optional, List
 
 class Papers:
 
-    def fetch_papers(self, keyword: Optional[str], category: Optional[str] = None, max_results: int = 10):
+    def fetch_papers(self, keyword: Optional[str], category: Optional[str] = None, max_results: int = None):
 
         if category and keyword:
             query = f"cat:{category} AND {keyword}"

@@ -4,11 +4,20 @@ from typing import Optional
 import aiofiles
 import httpx
 from datetime import datetime
-from urllib.parse import unquote
+from pydantic import BaseModel
+import tempfile
+import pathlib
 
 from services.papers import fetch_papers
 
 router = APIRouter()
+
+CURRENT_DIR = pathlib.Path(__file__).parent.parent
+PAPERS_DIR = CURRENT_DIR.parent / 'server' / 'arxiv_papers'
+PAPERS_DIR.mkdir(exist_ok=True)
+
+class PaperRequest(BaseModel):
+    pdf_url: str
 
 @router.get("/search/")
 async def search(
@@ -73,4 +82,45 @@ async def search(
         raise HTTPException(
             status_code=500, 
             detail=f"Error searching papers: {str(e)}"
+        )
+    
+@router.post("/summarize/")
+async def summarize_paper(paper_request: PaperRequest):
+    try:
+        pdf_url = paper_request.pdf_url
+        
+        # Extract arxiv ID from URL and create filename
+        arxiv_id = pdf_url.split('/')[-1].replace('.pdf', '')
+        pdf_path = PAPERS_DIR / f"{arxiv_id}.pdf"
+        
+        # Check if we already have the paper
+        if not pdf_path.exists():
+            # Download the PDF
+            async with httpx.AsyncClient() as client:
+                response = await client.get(pdf_url, follow_redirects=True)
+                if response.status_code != 200:
+                    raise HTTPException(
+                        status_code=404,
+                        detail="Could not download the paper"
+                    )
+                
+                # Save the PDF
+                async with aiofiles.open(pdf_path, 'wb') as f:
+                    await f.write(response.content)
+        
+        # TODO: Here you would implement the LLM summarization
+        # For now, return a mock summary
+        mock_summary = {
+            "summary": f"This is a mock summary for paper {arxiv_id}. Replace this with actual LLM summary implementation.",
+            "file_size": pdf_path.stat().st_size,
+            "download_time": datetime.now().isoformat(),
+            "path": str(pdf_path)
+        }
+        
+        return mock_summary
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing paper: {str(e)}"
         )

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchForm from './components/SearchForm';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import { searchPapers } from './services/api';
+import { getPapers } from './services/api';
 
 const App = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const App = () => {
     setError(null);
 
     try {
-      const response = await searchPapers(searchParams);
+      const response = await getPapers(searchParams);
       
       if (response.data) {
         if (response.data.length === 0) {

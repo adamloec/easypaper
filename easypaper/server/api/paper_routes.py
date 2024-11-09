@@ -7,6 +7,7 @@ from datetime import datetime
 from pydantic import BaseModel
 import tempfile
 import pathlib
+import PyPDF2
 
 from services.papers import fetch_papers
 
@@ -89,13 +90,10 @@ async def summarize_paper(paper_request: PaperRequest):
     try:
         pdf_url = paper_request.pdf_url
         
-        # Extract arxiv ID from URL and create filename
         arxiv_id = pdf_url.split('/')[-1].replace('.pdf', '')
         pdf_path = PAPERS_DIR / f"{arxiv_id}.pdf"
         
-        # Check if we already have the paper
         if not pdf_path.exists():
-            # Download the PDF
             async with httpx.AsyncClient() as client:
                 response = await client.get(pdf_url, follow_redirects=True)
                 if response.status_code != 200:
@@ -104,17 +102,32 @@ async def summarize_paper(paper_request: PaperRequest):
                         detail="Could not download the paper"
                     )
                 
-                # Save the PDF
                 async with aiofiles.open(pdf_path, 'wb') as f:
                     await f.write(response.content)
         
-        # TODO: Here you would implement the LLM summarization
-        # For now, return a mock summary
+        text_content = ""
+        try:
+            with open(pdf_path, 'rb') as file:
+                pdf_reader = PyPDF2.PdfReader(file)
+                
+                text_content = "\n".join(
+                    page.extract_text() 
+                    for page in pdf_reader.pages
+                )
+
+                text_content = re.sub(r'\n+', '\n', text_content)
+                text_content = re.sub(r'\s+', ' ', text_content)
+                text_content = text_content.strip()
+                
+        except Exception as e:
+            text_content = f"Error extracting text: {str(e)}"
+
         mock_summary = {
-            "summary": f"This is a mock summary for paper {arxiv_id}. Replace this with actual LLM summary implementation.",
+            "summary": f"LLM Summarization",
             "file_size": pdf_path.stat().st_size,
             "download_time": datetime.now().isoformat(),
-            "path": str(pdf_path)
+            "path": str(pdf_path),
+            "full_text": text_content
         }
         
         return mock_summary

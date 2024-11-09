@@ -9,7 +9,7 @@ const api = axios.create({
   }
 });
 
-export const searchPapers = async ({ search, category }) => {
+export const getPapers = async ({ search, category }) => {
   try {
     const params = new URLSearchParams();
 
@@ -27,6 +27,20 @@ export const searchPapers = async ({ search, category }) => {
 
     if (error.response?.status === 404) {
       return { data: [] };
+    }
+    throw error;
+  }
+};
+
+export const getPaperSummary = async (pdfUrl) => {
+  try {
+    const response = await api.post('/papers/summarize/', {
+      pdf_url: pdfUrl
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      throw new Error('Paper not found');
     }
     throw error;
   }

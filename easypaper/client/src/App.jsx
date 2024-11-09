@@ -31,10 +31,8 @@ const App = () => {
       
       if (err.code === 'ERR_NETWORK') {
         setError('Unable to connect to the server. Please verify the server is running on port 8000.');
-      } else if (err.response?.status === 500) {
-        setError('An unexpected error occurred. Please try again.');
       } else {
-        setError('An unexpected error occurred. Please try again later.');
+        setError('No papers found matching your search criteria. Try broadening your search.');
       }
     } finally {
       setLoading(false);

@@ -1,21 +1,14 @@
-import re
+import re, os
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
+import aiofiles
+import httpx
+from datetime import datetime
+from urllib.parse import unquote
 
-from services.papers import Papers
+from services.papers import fetch_papers
 
 router = APIRouter()
-papers = Papers()
-
-def prepare_search_query(query: str) -> str:
-    cleaned = re.sub(r'[^\w\s]', ' ', query)
-    cleaned = ' '.join(cleaned.split())
-    
-    if ' ' in cleaned:
-        terms = cleaned.split()
-        return f"ti:({' OR '.join(terms)}) OR abs:({' OR '.join(terms)})"
-    
-    return f"ti:{cleaned} OR abs:{cleaned}"
 
 @router.get("/search/")
 async def search(
@@ -27,11 +20,21 @@ async def search(
         if not keyword and not category:
             raise HTTPException(status_code=400, detail="Please provide a keyword or category for search")
 
+        def prepare_search_query(query: str) -> str:
+            cleaned = re.sub(r'[^\w\s]', ' ', query)
+            cleaned = ' '.join(cleaned.split())
+            
+            if ' ' in cleaned:
+                terms = cleaned.split()
+                return f"ti:({' OR '.join(terms)}) OR abs:({' OR '.join(terms)})"
+            
+            return f"ti:{cleaned} OR abs:{cleaned}"
+        
         processed_keyword = prepare_search_query(keyword) if keyword else None
 
         search_category = category if category and category.strip() else None
         
-        results = papers.fetch_papers(
+        results = fetch_papers(
             keyword=processed_keyword,
             category=search_category,
             max_results=max_results

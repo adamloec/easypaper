@@ -8,7 +8,7 @@ import Footer from './components/Footer';
 
 const ITEMS_PER_PAGE = 9;
 
-const Results = () => {
+const ResultsView = () => {
   const location = useLocation();
   const allPapers = location.state?.papers || [];
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,4 +64,4 @@ const Results = () => {
   );
 };
 
-export default Results;
+export default ResultsView;

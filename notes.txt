@@ -1,2 +1,0 @@
-- API calls are differnet
-- Paper.jsx is the issue I think. fetch command

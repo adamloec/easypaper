@@ -1,12 +1,5 @@
-import os
-import re
-from datetime import datetime
 from typing import Optional
 import arxiv
-import httpx
-import aiofiles
-from urllib.parse import unquote
-from fastapi import HTTPException
 
 def fetch_papers(keyword: Optional[str], category: Optional[str] = None, max_results: int = None):
 

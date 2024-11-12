@@ -1,11 +1,10 @@
-import re, os
+import re
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 import aiofiles
 import httpx
 from datetime import datetime
 from pydantic import BaseModel
-import tempfile
 import pathlib
 import PyPDF2
 
